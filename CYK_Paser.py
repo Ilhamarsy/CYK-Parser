@@ -1,93 +1,3 @@
-### Author
-'''
-Iker García Ferrero
-Github: https://github.com/ikergarcia1996
-'''
-# Example Of Use
- 
-'''
-# Initialize the grammar and read the rules from a file
-g = Grammar('example_grammar1.txt')
-
-# Parse a sentence
-g.parse('astronomers saw stars with ears')
-
-# Print the table used for parsing the sentence
-g.print_parse_table()
-
-# Get the list of trees generated for the sentence
-trees = g.get_trees()
-
-# Get the result of the production rule, VP, S, NP... 
-p = trees[0].get_type
-
-# Get the left child of the production rule
-l = trees[0].get_left
-
-# Get the right child of the production rule
-d = trees[0].get_right
-'''
-
- ## Expected output
-
- 
-'''
-Grammar file readed succesfully. Rules readed:
-S --> NP VP
-PP --> P NP
-VP --> V NP
-VP --> VP PP
-NP --> NP PP
-NP --> astronomers
-NP --> ears
-NP --> saw
-V --> saw
-NP --> telescope
-NP --> stars
-P --> with
-
-Applied Rule: VP[2,2] --> V[1,2] NP[1,3]
-Applied Rule: PP[2,4] --> P[1,4] NP[1,5]
-Applied Rule: S[3,1] --> NP[1,1] VP[2,2]
-Applied Rule: NP[3,3] --> NP[1,3] PP[2,4]
-Applied Rule: VP[4,2] --> V[1,2] NP[3,3]
-Applied Rule: VP[4,2] --> VP[2,2] PP[2,4]
-Applied Rule: S[5,1] --> NP[1,1] VP[4,2]
-Applied Rule: S[5,1] --> NP[1,1] VP[4,2]
-----------------------------------------
-The sentence IS accepted in the language
-Number of possible trees: 2
-----------------------------------------
-
------------  ------------  ------  ------  ------
-['S', 'S']
-[]           ['VP', 'VP']
-['S']        []            ['NP']
-[]           ['VP']        []      ['PP']
-['NP']       ['NP', 'V']   ['NP']  ['P']   ['NP']
-astronomers  saw           stars   with    ears
------------  ------------  ------  ------  ------
-'''
-
-
-# Example of grammar file
-'''
-S -> NP VP
-PP -> P NP
-VP -> V NP
-VP -> VP PP
-NP-> NP PP
-NP -> astronomers
-NP -> ears
-NP -> saw
-NP-> telescope
-NP -> stars
-P -> with
-V -> saw
-'''
-
-
-
 class Dictlist(dict):
     
     def __setitem__(self, key, value):
@@ -169,27 +79,19 @@ class Grammar(object):
     #Parameters:
     #   Filename: file containing a grammar
     
-    def __init__(self, filename):
+    def __init__(self):
         self.grammar_rules = Dictlist()
         self.parse_table = None
         self.length = 0
-        for line in open(filename):
+        for line in open("rules.txt"):
             a, b = line.split("->")
-            self.grammar_rules[b.rstrip().strip()]=a.rstrip().strip()
+            rules = b.split("|")
+            for c in rules:
+                self.grammar_rules[c.rstrip().strip()]=a.rstrip().strip()
         
+        # print(self.grammar_rules)
         if len(self.grammar_rules) == 0:
             raise ValueError("No rules found in the grammar file")
-        print('')
-        print('Grammar file readed succesfully. Rules readed:')
-        self.print_rules()
-        print('')
-    
-    #Print the production rules in the grammar
-    
-    def print_rules(self):
-        for r in self.grammar_rules:
-            for p in self.grammar_rules[r]:
-                print(str(p) + ' --> ' + str(r))
         
     def apply_rules(self,t):
         try:
@@ -200,7 +102,7 @@ class Grammar(object):
     #Parse a sentence (string) with the CYK algorithm   
     def parse(self,sentence):
         self.number_of_trees = 0
-        self.tokens = sentence.split()
+        self.tokens = sentence.lower().split()
         self.length = len(self.tokens)
         if self.length < 1:
             raise ValueError("The sentence could no be read")
@@ -234,7 +136,7 @@ class Grammar(object):
                                     
                             if r is not None:
                                 for w in r:
-                                    print('Applied Rule: ' + str(w) + '[' + str(l) + ',' + str(s) + ']' + ' --> ' + str(a.get_type) + '[' + str(p) + ',' + str(s) + ']' + ' ' + str(b.get_type)+ '[' + str(l-p) + ',' + str(s+p) + ']')
+                                    # print('Applied Rule: ' + str(w) + '[' + str(l) + ',' + str(s) + ']' + ' --> ' + str(a.get_type) + '[' + str(p) + ',' + str(s) + ']' + ' ' + str(b.get_type)+ '[' + str(l-p) + ',' + str(s+p) + ']')
                                     self.parse_table[l-1][s-1].add_production(w,a,b)
                                
         self.number_of_trees = len(self.parse_table[self.length-1][0].get_types)
@@ -243,10 +145,12 @@ class Grammar(object):
             print('The sentence IS accepted in the language')
             print('Number of possible trees: ' + str(self.number_of_trees))
             print("----------------------------------------")
+            return True
         else:
             print("--------------------------------------------")
             print('The sentence IS NOT accepted in the language')
             print("--------------------------------------------")
+            return False
         
         
     #Returns a list containing the parent of the possible trees that we can generate for the last sentence that have been parsed
@@ -256,30 +160,61 @@ class Grammar(object):
                 
     #@TODO
     def print_trees(self):
-        pass
+        trees = self.get_trees()
+        if not trees:
+            print("No parse trees available.")
+            return
+
+        print("tree :")
+        self._print_tree(trees[0], indent=2)
+        # print("Parse Trees:")
+        # for i, tree in enumerate(trees, start=1):
+        #     print(f"Tree {i}:")
+        #     # self._print_tree(tree, indent=2)
+        #     print("\n" + "-" * 40)
+
+    def _print_tree(self, node, indent=0):
+        if node is not None:
+            if isinstance(node, production_rule):
+                print(" " * indent + str(node.get_type))
+                self._print_tree(node.get_left, indent + 2)
+                self._print_tree(node.get_right, indent + 2)
+            elif isinstance(node, Cell):
+                for production in node.get_rules:
+                    print(" " * indent + f"({production.get_type})")
+                    self._print_tree(production.get_left, indent + 2)
+                    self._print_tree(production.get_right, indent + 2)
+
                       
     #Print the CYK parse trable for the last sentence that have been parsed.             
     def print_parse_table(self):
-        try:
-            from tabulate import tabulate
-        except (ModuleNotFoundError,ImportError) as r:
-            import subprocess
-            import sys
-            import logging
-            logging.warning('To print the CYK parser table the Tabulate module is necessary, trying to install it...')
-            subprocess.call([sys.executable, "-m", "pip", "install", 'tabulate'])
+        lines = {}
+        length = 0
+        
+        for i, row in enumerate(reversed(self.parse_table)):
+            length+=1
+            l = []
+            for cell in row:
+                l.append(cell.get_types)
+            lines[i] = l
 
-            try:
-                from tabulate import tabulate
-                logging.warning('The tabulate module has been instaled succesfuly!')
+        for key, arr in lines.items():
+            while len(arr) < length:
+                lines[key].append([])
+        
+        lines[length+1] = []
+        for s in self.tokens:
+            lines[length+1].append([s])
 
-            except (ModuleNotFoundError,ImportError) as r:
-                logging.warning('Unable to install the tabulate module, please run the command \'pip install tabulate\' in a command line')
+        self.print_table()
+        self.print_trees()
+        return lines
+        # print('')
 
         
+    def print_table(self):
+        from tabulate import tabulate
         lines = [] 
-        
-        
         
         for row in reversed(self.parse_table):
             l = []
@@ -290,4 +225,9 @@ class Grammar(object):
         lines.append(self.tokens)
         print('')
         print(tabulate(lines))
-        print('')
+
+if __name__ == "__main__":
+    g = Grammar()
+    g.parse(input("Input sentence: "))
+    g.print_table()
+    g.print_trees()
