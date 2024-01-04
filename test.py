@@ -10,19 +10,20 @@ tidak_ada_rule = 0
 
 for line in open("kalimat_baku.txt"):
   g = Grammar()
-  # try:
-  if g.parse(line.lower()):
-    kalimat_baku_valid += 1
-  else:
-    kalimat_baku_tidak_valid += 1
-  # except(ValueError):
-  #   tidak_ada_rule += 1
+  try:
+    if g.parse(line.lower()):
+      kalimat_baku_valid += 1
+    else:
+      kalimat_baku_tidak_valid += 1
+  except(ValueError):
+    tidak_ada_rule += 1
 
 for line in open("kalimat_tidak_baku.txt"):
   g = Grammar()
   try:
     if g.parse(line.lower()):
       kalimat_tidak_baku_valid += 1
+      print(line)
     else:
       kalimat_tidak_baku_tidak_valid += 1
   except(ValueError):

@@ -89,7 +89,6 @@ class Grammar(object):
             for c in rules:
                 self.grammar_rules[c.rstrip().strip()]=a.rstrip().strip()
         
-        # print(self.grammar_rules)
         if len(self.grammar_rules) == 0:
             raise ValueError("No rules found in the grammar file")
         
@@ -141,22 +140,18 @@ class Grammar(object):
                                
         self.number_of_trees = len(self.parse_table[self.length-1][0].get_types)
         if  self.number_of_trees > 0:
-            print("----------------------------------------")
-            print('The sentence IS accepted in the language')
-            print('Number of possible trees: ' + str(self.number_of_trees))
-            print("----------------------------------------")
-            return True
+            for cell in self.parse_table[self.length-1]:
+                for a in cell.get_types:
+                    if a == 'K':
+                        return True
+            return False
         else:
-            print("--------------------------------------------")
-            print('The sentence IS NOT accepted in the language')
-            print("--------------------------------------------")
             return False
         
         
     #Returns a list containing the parent of the possible trees that we can generate for the last sentence that have been parsed
     def get_trees(self):
-        return self.parse_table[self.length-1][0].productions
-                
+        return self.parse_table[self.length-1][0].productions  
                 
     #@TODO
     def print_trees(self):
@@ -166,12 +161,14 @@ class Grammar(object):
             return
 
         print("tree :")
-        self._print_tree(trees[0], indent=2)
-        # print("Parse Trees:")
-        # for i, tree in enumerate(trees, start=1):
-        #     print(f"Tree {i}:")
-        #     # self._print_tree(tree, indent=2)
-        #     print("\n" + "-" * 40)
+        print("Parse Trees:")
+        for i, tree in enumerate(trees, start=1):
+            if str(tree.get_type) == 'K':
+                print(f"Tree:")
+                self._print_tree(tree, indent=2)
+                print("\n" + "-" * 40)
+            else:
+                continue
 
     def _print_tree(self, node, indent=0):
         if node is not None:
@@ -184,7 +181,6 @@ class Grammar(object):
                     print(" " * indent + f"({production.get_type})")
                     self._print_tree(production.get_left, indent + 2)
                     self._print_tree(production.get_right, indent + 2)
-
                       
     #Print the CYK parse trable for the last sentence that have been parsed.             
     def print_parse_table(self):
@@ -209,7 +205,6 @@ class Grammar(object):
         self.print_table()
         self.print_trees()
         return lines
-        # print('')
 
         
     def print_table(self):
@@ -228,6 +223,13 @@ class Grammar(object):
 
 if __name__ == "__main__":
     g = Grammar()
-    g.parse(input("Input sentence: "))
+    if g.parse(input("Input sentence: ")):
+        print("----------------------------------------")
+        print('The sentence IS accepted in the language')
+        print("----------------------------------------")
+    else:
+        print("--------------------------------------------")
+        print('The sentence IS NOT accepted in the language')
+        print("--------------------------------------------") 
     g.print_table()
     g.print_trees()
