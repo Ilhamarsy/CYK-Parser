@@ -8,6 +8,7 @@ kalimat_tidak_baku_tidak_valid = 0
 
 tidak_ada_rule = 0
 
+print("Kalimat Baku Tidak Valid:")
 for line in open("kalimat_baku.txt"):
   g = Grammar()
   try:
@@ -15,9 +16,12 @@ for line in open("kalimat_baku.txt"):
       kalimat_baku_valid += 1
     else:
       kalimat_baku_tidak_valid += 1
+      print(line)
   except(ValueError):
     tidak_ada_rule += 1
 
+print("============================================")
+print("Kalimat Tidak Baku Valid:")
 for line in open("kalimat_tidak_baku.txt"):
   g = Grammar()
   try:

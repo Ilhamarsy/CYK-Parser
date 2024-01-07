@@ -69,7 +69,6 @@ class Cell(object):
 
 
 class Grammar(object):
-    
     grammar_rules = Dictlist()
     parse_table = None
     length = 0
@@ -78,7 +77,6 @@ class Grammar(object):
     
     #Parameters:
     #   Filename: file containing a grammar
-    
     def __init__(self):
         self.grammar_rules = Dictlist()
         self.parse_table = None
@@ -120,8 +118,6 @@ class Grammar(object):
         
         
         #Run CYK-Parser
-        
-        
         for l in range(2,self.length+1):
             for s in range(1,self.length-l+2):
                 for p in range(1,l-1+1):
@@ -160,10 +156,12 @@ class Grammar(object):
             print("No parse trees available.")
             return
 
+        count = 0;
         print("tree :")
         print("Parse Trees:")
         for i, tree in enumerate(trees, start=1):
-            if str(tree.get_type) == 'K':
+            if (str(tree.get_type) == 'K') & (count < 1):
+                count+=1;
                 print(f"Tree:")
                 self._print_tree(tree, indent=2)
                 print("\n" + "-" * 40)
@@ -191,7 +189,11 @@ class Grammar(object):
             length+=1
             l = []
             for cell in row:
-                l.append(cell.get_types)
+                n = []
+                for nt in cell.get_types:
+                    if nt not in n:
+                        n.append(nt)
+                l.append(n)
             lines[i] = l
 
         for key, arr in lines.items():
@@ -202,7 +204,7 @@ class Grammar(object):
         for s in self.tokens:
             lines[length+1].append([s])
 
-        self.print_table()
+        # self.print_table()
         self.print_trees()
         return lines
 
@@ -211,12 +213,25 @@ class Grammar(object):
         from tabulate import tabulate
         lines = [] 
         
+        # for row in reversed(self.parse_table):
+        #     l = []
+        #     for cell in row:
+        #         if cell.get_types not in l:
+        #             l.append(cell.get_types)
+
+        #     print(l)
+        #     lines.append(l)
+        
         for row in reversed(self.parse_table):
             l = []
             for cell in row:
-                l.append(cell.get_types)
+                n = []
+                for nt in cell.get_types:
+                    if nt not in n:
+                        n.append(nt)
+                l.append(n)
             lines.append(l)
-        
+
         lines.append(self.tokens)
         print('')
         print(tabulate(lines))
@@ -231,5 +246,6 @@ if __name__ == "__main__":
         print("--------------------------------------------")
         print('The sentence IS NOT accepted in the language')
         print("--------------------------------------------") 
-    g.print_table()
-    g.print_trees()
+    # g.print_table()
+    # g.print_trees()
+    print(g.print_parse_table())
